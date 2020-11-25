@@ -64,15 +64,21 @@ class GameUnix:
         logging.basicConfig(filename=log_file, level=logging.DEBUG, filemode='w')
         logging.info("Initialized bot {}".format(name))
 
-    def __init__(self, name):
+    def __init__(self, name, socket_path="/dev/shm/bot.sock"):
         """
         Initialize the bot with the given name.
 
         :param name: The name of the bot.
         """
-        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        s.connect("bot.sock")
-        self.sfile = s.makefile('rw')
+        self.s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        connected = False
+        while not connected:
+            try:
+                self.s.connect(socket_path)
+                connected = True
+            except Exception:
+                pass    # Do nothing, just try again
+        self.sfile = self.s.makefile('rw')
 
         self._name = name
         self._send_name = False
@@ -83,6 +89,8 @@ class GameUnix:
         self.update_map()
         self.initial_map = copy.deepcopy(self.map)
         self._send_name = True
+
+        self.done = False
 
     def update_map(self):
         """
@@ -97,6 +105,15 @@ class GameUnix:
             self._send_name = False
         logging.info("---NEW TURN---")
         recv = self._get_string()
-        print('recv: ', recv)
+
+        if recv == "":
+            self.close()
+            self.done = True
+            return self.map     # last step map
+
         self.map._parse(recv)
         return self.map
+    
+    def close(self):
+        self.sfile.close()
+        self.s.close()
