@@ -2,44 +2,22 @@
 import asyncio 
 import sys
 
+async def write(writer, line):
+    writer.write(line.encode())
+    await writer.drain()
+
+async def read(reader):
+    got = await reader.readline()
+    sys.stdout.write(got.decode('utf-8'))
+    sys.stdout.flush()
 
 async def bot(reader, writer):
-    with open('debug.log', 'w') as f:
-        line = sys.stdin.readline()
-        writer.write(line.encode())
-        f.write(f'write: {line}')
-        f.flush()
-        await writer.drain()
-        line = sys.stdin.readline()
-        writer.write(line.encode())
-        f.write(f'write: {line}')
-        f.flush()
-        await writer.drain()
+    await write(writer, sys.stdin.readline())
+    await write(writer, sys.stdin.readline())
 
-        line = sys.stdin.readline()
-        writer.write(line.encode())
-        f.write(f'write: {line}')
-        f.flush()
-        await writer.drain()
-
-        got = await reader.readline()
-        sys.stdout.write(got.decode('utf-8'))
-        sys.stdout.flush()
-        # print('\n', flush=True)
-        f.write(f'read: {got}\n')
-        f.flush()
-
-        for line in sys.stdin:
-            writer.write(line.encode())
-            f.write(f'write: {line}')
-            f.flush()
-            await writer.drain()
-            got = await reader.readline()
-            sys.stdout.write(got.decode('utf-8'))
-            sys.stdout.flush()
-            # print('\n', flush=True)
-            f.write(f'read: {got}\n')
-            f.flush()
+    for line in sys.stdin:
+        await write(writer, line)
+        await read(reader)
 
 async def launch():
     server = await asyncio.start_unix_server(bot, path='bot.sock')
