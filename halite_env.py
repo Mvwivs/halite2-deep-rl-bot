@@ -13,9 +13,9 @@ class Env():
     def step(self, actions):
         self.game.send_command_queue(actions)
 
-        reward = 14_88
-
         observation = self.game.update_map()
+        reward = 1
+
         done = self.game.done
         if done:
             self.close()
@@ -43,3 +43,38 @@ class Env():
         
     def configure(self, socket_path="/dev/shm/bot.sock"):
         self.socket_path = socket_path
+
+class CommandEnv():
+    def __init__(self):
+        self.env = Env()
+
+    def step(self, actions):
+        
+        commands = self._get_commands(actions)
+        map, _, done, _ = self.env.step(commands)
+
+        reward = self._calc_reward(map)
+        observation = self._get_observations(map)
+
+        return observation, reward, done, {}
+    
+    def reset(self):
+        return self.env.reset()
+
+    def close(self):
+        self.env.close()
+        
+    def configure(self, socket_path="/dev/shm/bot.sock"):
+        self.env.configure(socket_path)
+
+    def _get_commands(self, actions):
+        commands = []
+        return commands
+
+    def _calc_reward(self, map):
+        reward = 0
+        return reward
+
+    def _get_observations(self, map):
+        observation = {}
+        return observation
