@@ -31,7 +31,7 @@ class Env():
         if self.replay:
             self.process = sub.Popen(["./halite", "-i", "replays", "-d", "240 160", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
         else:
-            self.process = sub.Popen(["./halite", "-r", "-i", "replays", "-d", "240 160", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
+            self.process = sub.Popen(["./halite", "-q", "-r", "-i", "replays", "-d", "240 160", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"], stdout=sub.PIPE)
         
         self.game = hlt.GameUnix("Env", self.socket_path)
 
@@ -109,6 +109,9 @@ class CommandEnv():
             return []
 
         dest_planet = map.get_planet(planet_id)
+        if dest_planet is None:
+            return []
+
         for ship in map.get_me().all_ships():
             if ship.can_dock(dest_planet):
                     commands.append(ship.dock(dest_planet))

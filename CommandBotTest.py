@@ -22,7 +22,7 @@ model.add(Dense(nb_actions))
 model.add(Activation('linear'))
 print(model.summary())
 
-model.load_weights('dqn_PlanetCaptureBot_weights.h5f')
+model.load_weights('dqn_PlanetCaptureBot_weights_final.h5f')
 
 env = halite_env.CommandEnv()
 env.configure(socket_path=f"/dev/shm/{time.time_ns()}", replay=True)
