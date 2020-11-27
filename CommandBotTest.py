@@ -4,9 +4,9 @@ import hlt
 import halite_env
 import numpy as np
 
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
-from keras.optimizers import Adam
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation, Flatten
+from tensorflow.keras.optimizers import Adam
 
 nb_actions = 28
 
