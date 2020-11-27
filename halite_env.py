@@ -5,6 +5,8 @@ import numpy as np
 
 import hlt
 
+from gym.spaces.discrete import Discrete
+
 class Env():
     def __init__(self):
         self.game = None
@@ -29,9 +31,9 @@ class Env():
 
         # run exe
         if self.replay:
-            self.process = sub.Popen(["./halite", "-i", "replays", "-d", "240 160", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
+            self.process = sub.Popen(["./halite", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
         else:
-            self.process = sub.Popen(["./halite", "-q", "-r", "-i", "replays", "-d", "240 160", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"], stdout=sub.PIPE)
+            self.process = sub.Popen(["./halite", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"], stdout=sub.PIPE)
         
         self.game = hlt.GameUnix("Env", self.socket_path)
 
@@ -66,7 +68,7 @@ def navigate(game_map, start_of_round, ship, destination, speed):
     have_time = current_time - start_of_round < 1.2
     navigate_command = None
     if have_time:
-        navigate_command = ship.navigate(destination, game_map, speed=speed, max_corrections=180)
+        navigate_command = ship.navigate(destination, game_map, speed=speed, max_corrections=180, ignore_ships=False)
     if navigate_command is None:
         # ship.navigate may return None if it cannot find a path. In such a case we just thrust.
         dist = ship.calculate_distance_between(destination)
@@ -74,9 +76,17 @@ def navigate(game_map, start_of_round, ship, destination, speed):
         navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
     return navigate_command
 
+max_planets = 28
+max_radius = 16
+max_health = max_radius * 255
+max_distance = 462
+feature_len = 7
+
 class CommandEnv():
     def __init__(self):
         self.env = Env()
+        self.action_space = Discrete(max_planets)
+        self.observation_space = np.zeros((max_planets, feature_len))
         self.map = None
         self.start_round = 0
 
@@ -104,9 +114,7 @@ class CommandEnv():
     def _get_commands(self, action, map: hlt.game_map.Map):
         # print(f'{action=}')
         commands = []
-        planet_id = action
-        if planet_id >= len(map.all_planets()):
-            return []
+        planet_id = action % len(map.all_planets())
 
         dest_planet = map.get_planet(planet_id)
         if dest_planet is None:
@@ -143,11 +151,6 @@ class CommandEnv():
         return reward
 
     def _get_observations(self, map):
-        max_planets = 28
-        max_radius = 16
-        max_health = max_radius * 255
-        feature_len = 5
-        max_distance = 462
 
         player_id = map.get_me().id
 
@@ -168,12 +171,17 @@ class CommandEnv():
                 if ship.owner != player_id
             ]) / max_distance
 
+            owned = planet.is_owned()
+            owned_by_me = (planet.owner == player_id)
+
             features = [
                 radius,
                 health,
                 docked_ships,
                 closest_friendly_ship_distance,
                 closest_enemy_ship_distance,
+                owned,
+                owned_by_me
             ]
             observation[i] = np.array(features)
 
