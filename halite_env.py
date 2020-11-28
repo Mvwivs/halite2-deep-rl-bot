@@ -1,11 +1,11 @@
-
-import time
 import subprocess as sub
+import time
+
 import numpy as np
+from gym.spaces.discrete import Discrete
 
 import hlt
 
-from gym.spaces.discrete import Discrete
 
 class Env():
     def __init__(self):
@@ -25,16 +25,20 @@ class Env():
             self.close()
 
         return observation, reward, done, {}
-    
+
     def reset(self):
         self.close()
 
         # run exe
         if self.replay:
-            self.process = sub.Popen(["./halite", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
+            self.process = sub.Popen(
+                ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
         else:
-            self.process = sub.Popen(["./halite", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"], stdout=sub.PIPE)
-        
+            self.process = sub.Popen(
+                ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}',
+                 "python3 Enemy.py"],
+                stdout=sub.PIPE)
+
         self.game = hlt.GameUnix("Env", self.socket_path)
 
         return self.game.update_map()
@@ -43,14 +47,15 @@ class Env():
         if self.game is not None:
             self.game.close()
             self.game = None
-            
+
         if self.process is not None:
             self.process.wait()
             self.process = None
-        
+
     def configure(self, socket_path="/dev/shm/bot.sock", replay=False):
         self.socket_path = socket_path
         self.replay = replay
+
 
 def navigate(game_map, start_of_round, ship, destination, speed):
     """
@@ -76,11 +81,28 @@ def navigate(game_map, start_of_round, ship, destination, speed):
         navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
     return navigate_command
 
+
+def attack(game_map, start_of_round, ship, destination, speed):
+    current_time = time.time()
+    have_time = current_time - start_of_round < 1.2
+    dist = ship.calculate_distance_between(destination)
+    navigate_command = None
+    if have_time and dist > hlt.constants.MAX_SPEED:
+        navigate_command = ship.navigate(destination, game_map, speed=speed, max_corrections=180, ignore_ships=False)
+    elif dist <= speed:
+        navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
+    if navigate_command is None:
+        speed = speed if (dist >= speed) else dist
+        navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
+    return navigate_command
+
+
 max_planets = 28
 max_radius = 16
 max_health = max_radius * 255
 max_distance = 462
 feature_len = 7
+
 
 class CommandEnv():
     def __init__(self):
@@ -91,7 +113,7 @@ class CommandEnv():
         self.start_round = 0
 
     def step(self, action):
-        
+
         commands = self._get_commands(action, self.map)
         self.map, _, done, _ = self.env.step(commands)
         self.start_round = time.time()
@@ -100,17 +122,17 @@ class CommandEnv():
         observation = self._get_observations(self.map)
 
         return observation, reward, done, {}
-    
+
     def reset(self):
         self.map = self.env.reset()
         return self._get_observations(self.map)
 
     def close(self):
         self.env.close()
-        
+
     def configure(self, socket_path="/dev/shm/bot.sock", replay=False):
         self.env.configure(socket_path, replay)
-    
+
     def _get_commands(self, action, map: hlt.game_map.Map):
         # print(f'{action=}')
         commands = []
@@ -122,14 +144,14 @@ class CommandEnv():
 
         for ship in map.get_me().all_ships():
             if ship.can_dock(dest_planet):
-                    commands.append(ship.dock(dest_planet))
+                commands.append(ship.dock(dest_planet))
             else:
                 navigate_command = navigate(
                     map,
                     self.start_round,
                     ship,
                     ship.closest_point_to(dest_planet),
-                    speed=int(hlt.constants.MAX_SPEED/2))
+                    speed=int(hlt.constants.MAX_SPEED / 2))
                 if navigate_command:
                     commands.append(navigate_command)
 
@@ -156,16 +178,15 @@ class CommandEnv():
 
         observation = np.zeros((max_planets, feature_len))
         for i, planet in enumerate(map.all_planets()):
-            
             radius = planet.radius / max_radius
             health = planet.health / max_health
             docked_ships = len(planet.all_docked_ships()) / planet.num_docking_spots
-            
-            closest_friendly_ship_distance = np.min([ 
+
+            closest_friendly_ship_distance = np.min([
                 np.linalg.norm((planet.x - ship.x, planet.y - ship.y))
                 for ship in map.get_me().all_ships()
             ]) / max_distance
-            closest_enemy_ship_distance = np.min([ 
+            closest_enemy_ship_distance = np.min([
                 np.linalg.norm((planet.x - ship.x, planet.y - ship.y))
                 for ship in map._all_ships()
                 if ship.owner != player_id
