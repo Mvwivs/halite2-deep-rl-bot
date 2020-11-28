@@ -5,3 +5,5 @@ __pycache__/
 *.log
 *.hlt
 venv/
+*.h5f.index
+*.h5f.data-*
