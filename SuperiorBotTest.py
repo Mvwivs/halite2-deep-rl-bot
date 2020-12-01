@@ -15,12 +15,11 @@ env.configure(socket_path=f"/dev/shm/{time.time_ns()}", replay=True)
 model = LordTateKanti.make_model(env)
 print(model.summary())
 
-model.load_weights('dqn_SuperiorBot_weights_final.h5f')
+model.load_weights('dqn_supbot_bk.h5f')
 
 reward = 0
 observations = env.reset()
 while True:
-    # print(f'{observations=}')
     action = np.argmax(model.predict(observations.reshape((1, -1))))
 
     # print(f'{actions=}')

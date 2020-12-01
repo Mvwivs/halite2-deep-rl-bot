@@ -6,7 +6,7 @@ from gym.spaces import Discrete
 
 import hlt
 from envs.grid import Grid
-from halite_env import navigate, attack
+from halite_env import navigate
 from hlt.entity import Position
 from hlt.game_map import Map
 
@@ -89,33 +89,42 @@ class SuperiorEnv:
                         ship,
                         ship.closest_point_to(dest_planet),
                         speed=int(hlt.constants.MAX_SPEED / 2)))
-        elif len(enemy_ships_on_tile) > 0:
-            for ship in ships:
-                dest_ship = enemy_ships_on_tile[np.argmin([
-                    np.linalg.norm((enemy.x - ship.x, enemy.y - ship.y))
-                    for enemy in enemy_ships_on_tile
-                ])]
-                commands.append(attack(
-                    world_map,
-                    self.start_round,
-                    ship,
-                    Position(dest_ship.x, dest_ship.y),
-                    speed=int(hlt.constants.MAX_SPEED / 2)))
+        # elif len(enemy_ships_on_tile) > 0:
+        #     for ship in ships:
+        #         dest_ship = enemy_ships_on_tile[np.argmin([
+        #             np.linalg.norm((enemy.x - ship.x, enemy.y - ship.y))
+        #             for enemy in enemy_ships_on_tile
+        #         ])]
+        #         commands.append(attack(
+        #             world_map,
+        #             ship,
+        #             Position(dest_ship.x, dest_ship.y),
+        #             speed=int(hlt.constants.MAX_SPEED / 2)))
         elif len(enemy_planets) > 0:
             for ship in ships:
                 dest_planet = enemy_planets[np.argmin([
                     np.linalg.norm((planet.x - ship.x, planet.y - ship.y))
                     for planet in enemy_planets
                 ])]
-                if ship.can_dock(dest_planet):
-                    commands.append(ship.dock(dest_planet))
+                if len(dest_planet.all_docked_ships()) == 0:
+                    if ship.can_dock(dest_planet):
+                        commands.append(ship.dock(dest_planet))
+                    else:
+                        commands.append(navigate(
+                            world_map,
+                            self.start_round,
+                            ship,
+                            ship.closest_point_to(dest_planet),
+                            speed=int(hlt.constants.MAX_SPEED / 2)))
                 else:
-                    commands.append(navigate(
-                        world_map,
-                        self.start_round,
-                        ship,
-                        ship.closest_point_to(dest_planet),
-                        speed=int(hlt.constants.MAX_SPEED / 2)))
+                    weakest_ship = None
+                    for s in dest_planet.all_docked_ships():
+                        if weakest_ship is None or weakest_ship.health > s.health:
+                            weakest_ship = s
+                    commands.append(
+                        navigate(world_map, self.start_round, ship, ship.closest_point_to(weakest_ship),
+                                 int(hlt.constants.MAX_SPEED / 2)))
+
         else:
             for ship in ships:
                 commands.append(navigate(
@@ -135,7 +144,7 @@ class SuperiorEnv:
         for planet in planets:
             if planet.is_owned() and planet.owner.id == player_id:
                 my_planets += 1
-        return (my_planets / total_planets)**2
+        return (my_planets / total_planets) ** 2
 
         # Общее здоровье планет в тайле / общее здоровье
 
