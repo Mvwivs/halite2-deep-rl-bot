@@ -1,12 +1,11 @@
-
-import time
 import subprocess as sub
+import time
+
 import numpy as np
 import math
 
 import hlt
 
-from gym.spaces.discrete import Discrete
 
 class Env():
     def __init__(self):
@@ -26,16 +25,20 @@ class Env():
             self.close()
 
         return observation, reward, done, {}
-    
+
     def reset(self):
         self.close()
 
         # run exe
         if self.replay:
-            self.process = sub.Popen(["./halite", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
+            self.process = sub.Popen(
+                ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
         else:
-            self.process = sub.Popen(["./halite", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"], stdout=sub.PIPE)
-        
+            self.process = sub.Popen(
+                ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}',
+                 "python3 Enemy.py"],
+                stdout=sub.PIPE)
+
         self.game = hlt.GameUnix("Env", self.socket_path)
 
         return self.game.update_map()
@@ -44,11 +47,11 @@ class Env():
         if self.game is not None:
             self.game.close()
             self.game = None
-            
+
         if self.process is not None:
             self.process.wait()
             self.process = None
-        
+
     def configure(self, socket_path="/dev/shm/bot.sock", replay=False):
         self.socket_path = socket_path
         self.replay = replay
@@ -76,6 +79,22 @@ def navigate(game_map, start_of_round, ship, destination, speed=int(hlt.constant
         speed = speed if (dist >= speed) else dist
         navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
     return navigate_command
+
+
+def attack(game_map, start_of_round, ship, destination, speed):
+    current_time = time.time()
+    have_time = current_time - start_of_round < 1.2
+    dist = ship.calculate_distance_between(destination)
+    navigate_command = None
+    if have_time and dist > hlt.constants.MAX_SPEED:
+        navigate_command = ship.navigate(destination, game_map, speed=speed, max_corrections=180, ignore_ships=False)
+    elif dist <= speed:
+        navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
+    if navigate_command is None:
+        speed = speed if (dist >= speed) else dist
+        navigate_command = ship.thrust(speed, ship.calculate_angle_between(destination))
+    return navigate_command
+
 
 max_planets = 28
 max_radius = 16
