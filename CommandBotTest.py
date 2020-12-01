@@ -1,17 +1,19 @@
 
 import time
 import hlt
-import halite_env
 import numpy as np
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
 from tensorflow.keras.optimizers import Adam
 
+import halite_env
+from envs.command_env import CommandEnv
 from models import LordTateKanti
 
-env = halite_env.CommandEnv()
+env = halite_env.Env()
 env.configure(socket_path=f"/dev/shm/{time.time_ns()}", replay=True)
+env = CommandEnv(env)
 
 model = LordTateKanti.make_model(env)
 print(model.summary())
