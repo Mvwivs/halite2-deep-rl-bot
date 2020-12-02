@@ -13,6 +13,7 @@ class Env():
         self.process = None
         self.socket_path = ""
         self.replay = False
+        self.bot_name = "Env"
 
     def step(self, actions):
         self.game.send_command_queue(actions)
@@ -39,7 +40,7 @@ class Env():
                  "python3 Covid.py"],
                 stdout=sub.PIPE)
 
-        self.game = hlt.GameUnix("Env", self.socket_path)
+        self.game = hlt.GameUnix(self.bot_name, self.socket_path)
 
         return self.game.update_map()
 
@@ -52,9 +53,10 @@ class Env():
             self.process.wait()
             self.process = None
 
-    def configure(self, socket_path="/dev/shm/bot.sock", replay=False):
+    def configure(self, socket_path="/dev/shm/bot.sock", replay=False, bot_name="Env"):
         self.socket_path = socket_path
         self.replay = replay
+        self.bot_name = bot_name
 
 def navigate(game_map, start_of_round, ship, destination, speed=int(hlt.constants.MAX_SPEED)):
     """
