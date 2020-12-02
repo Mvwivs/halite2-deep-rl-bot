@@ -9,4 +9,4 @@ build up a list of commands and send them with send_command_queue().
 from . import collision, constants, entity, game_map, networking, unix_game
 
 from .networking import Game
-from .unix_game import GameUnix
+from .unix_game import GameUnix, GameStdIO

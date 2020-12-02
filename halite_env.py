@@ -6,14 +6,14 @@ import math
 
 import hlt
 
-
 class Env():
-    def __init__(self):
+    def __init__(self, stdio=False):
         self.game = None
         self.process = None
         self.socket_path = ""
         self.replay = False
         self.bot_name = "Env"
+        self.stdio = stdio
 
     def step(self, actions):
         self.game.send_command_queue(actions)
@@ -30,17 +30,20 @@ class Env():
     def reset(self):
         self.close()
 
-        # run exe
-        if self.replay:
-            self.process = sub.Popen(
-                ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Covid.py"])
-        else:
-            self.process = sub.Popen(
-                ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}',
-                 "python3 Covid.py"],
-                stdout=sub.PIPE)
+        if self.stdio:
+            self.game = hlt.GameStdIO(self.bot_name)
+        else :
+            # run exe
+            if self.replay:
+                self.process = sub.Popen(
+                    ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Covid.py"])
+            else:
+                self.process = sub.Popen(
+                    ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}',
+                    "python3 Covid.py"],
+                    stdout=sub.PIPE)
+            self.game = hlt.GameUnix(self.bot_name, self.socket_path)
 
-        self.game = hlt.GameUnix(self.bot_name, self.socket_path)
 
         return self.game.update_map()
 
