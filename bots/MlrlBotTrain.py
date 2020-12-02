@@ -48,7 +48,7 @@ agent = DDPGAgent(nb_actions=nb_actions, actor=actor, critic=critic, critic_acti
 agent.compile(Adam(lr=1e-3), metrics=['mae'])
 
 callbacks = [
-    ModelIntervalCheckpoint(weights_name + '_{step}.h5f', interval=100000),
+    ModelIntervalCheckpoint(weights_name + '_{step}.h5f', interval=10_000),
     TrainEpisodeLogger(),
     TensorBoard()
 ]

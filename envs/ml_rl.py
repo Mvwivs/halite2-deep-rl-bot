@@ -5,17 +5,16 @@ import heapq
 
 import hlt
 
-from gym.spaces.discrete import Discrete
-
 from halite_env import navigate
 from halite_env import max_planets, max_radius, max_health, max_distance
+from envs.gym_discrete import gym_discrete
 
 feature_len = 8
 
 class MlrlEnv():
     def __init__(self, env):
         self.env = env
-        self.action_space = Discrete(max_planets)
+        self.action_space = gym_discrete(max_planets)
         self.observation_space = np.zeros((max_planets, feature_len))
         self.map = None
         self.start_round = 0

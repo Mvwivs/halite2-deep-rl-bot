@@ -1,0 +1,6 @@
+
+tf_nightly_gpu==2.5.0.dev20201126
+numpy==1.19.4
+keras_rl2==1.0.4
+gym==0.17.3
+tensorboardX==2.1

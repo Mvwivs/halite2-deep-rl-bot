@@ -4,11 +4,9 @@ import time
 
 import hlt
 
-from gym.spaces.discrete import Discrete
-
 from halite_env import navigate
 from halite_env import max_planets, max_radius, max_health, max_distance
-
+from envs.gym_discrete import gym_discrete
 
 feature_len = 7
 
@@ -17,7 +15,7 @@ class CommandEnv():
         self.min_planet = 12
 
         self.env = env
-        self.action_space = Discrete(self.min_planet)
+        self.action_space = gym_discrete(self.min_planet)
         self.observation_space = np.zeros((self.min_planet, feature_len))
         self.map = None
         self.start_round = 0

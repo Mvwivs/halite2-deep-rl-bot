@@ -11,3 +11,5 @@ tb_venv/
 checkpoint
 runs/
 *.csv
+dist/
+build/
