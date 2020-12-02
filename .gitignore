@@ -5,6 +5,9 @@ __pycache__/
 *.log
 *.hlt
 venv/
+tb_venv/
 *.h5f.index
 *.h5f.data-*
 checkpoint
+runs/
+*.csv

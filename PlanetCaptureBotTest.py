@@ -20,6 +20,7 @@ print(model.summary())
 
 model.load_weights('dqn_PlanetCaptureBot_weights_final.h5f')
 
+total_reward = 0
 reward = 0
 observations = env.reset()
 while True:
@@ -32,10 +33,11 @@ while True:
 
     observations, reward, done, _ = env.step(action)
 
+    total_reward += reward
     print(f'{reward=}')
 
     if done:
         break
 
 env.close()
-print("done")
+print(f'done, {total_reward=}')

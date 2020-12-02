@@ -22,6 +22,8 @@ class CommandEnv():
         self.map = None
         self.start_round = 0
 
+        self.last_planets = 0
+
 
     def step(self, action):
         
@@ -90,15 +92,19 @@ class CommandEnv():
             if planet.is_owned() and planet.owner.id == player_id:
                 my_planets += 1
         
-        enemy_planets = 0
-        for planet in map.all_planets():
-            if planet.is_owned() and planet.owner.id != player_id:
-                enemy_planets += 1
+        is_docking = False
+        for ship in map.get_me().all_ships():
+            if ship.docking_status == hlt.entity.Ship.DockingStatus.DOCKING:
+                is_docking = True
+                break
 
-        my_ships = len(map.get_me().all_ships())
-        
-        reward = (my_planets) ** 2
+        if is_docking:
+            reward += 10
 
+        if my_planets > self.last_planets:
+            reward += 100
+
+        self.last_planets = my_planets
         return reward
 
     def _get_observations(self, map):

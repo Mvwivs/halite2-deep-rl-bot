@@ -32,11 +32,11 @@ class Env():
         # run exe
         if self.replay:
             self.process = sub.Popen(
-                ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Enemy.py"])
+                ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Covid.py"])
         else:
             self.process = sub.Popen(
                 ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}',
-                 "python3 Enemy.py"],
+                 "python3 Covid.py"],
                 stdout=sub.PIPE)
 
         self.game = hlt.GameUnix("Env", self.socket_path)
@@ -56,7 +56,7 @@ class Env():
         self.socket_path = socket_path
         self.replay = replay
 
-def navigate(game_map, start_of_round, ship, destination, speed=int(hlt.constants.MAX_SPEED/2)):
+def navigate(game_map, start_of_round, ship, destination, speed=int(hlt.constants.MAX_SPEED)):
     """
     Send a ship to its destination. Because "navigate" method in Halite API is expensive, we use that method only if
     we haven't used too much time yet.
