@@ -1,11 +1,8 @@
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-
 import time
 import hlt
 import numpy as np
+import os
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Activation, Flatten
@@ -22,7 +19,9 @@ env = CommandEnv(env)
 model = LordTateKanti.make_model(env)
 print(model.summary())
 
-model.load_weights('dqn_PlanetCaptureBot_weights_final.h5f')
+current_directory = os.path.dirname(os.path.abspath(__file__))
+model_location = os.path.join(current_directory, 'dqn_PlanetCaptureBot_weights_final.h5f')
+model.load_weights(model_location)
 
 total_reward = 0
 reward = 0

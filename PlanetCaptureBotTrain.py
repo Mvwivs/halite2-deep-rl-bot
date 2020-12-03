@@ -1,8 +1,4 @@
 
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-
 import numpy as np
 import time
 import tensorflow as tf
