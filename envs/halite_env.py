@@ -1,19 +1,23 @@
 import subprocess as sub
 import time
 
-import numpy as np
-import math
-
 import hlt
 
+
 class Env():
-    def __init__(self, stdio=False):
+    def __init__(self, stdio=False, halite_binary_path="./halite", enemy_launch_cmd="python",
+                 halite_opts=("-t", "-i", "replays"),
+                 enemy_bot_path="Enemy.py"):
         self.game = None
         self.process = None
         self.socket_path = ""
         self.replay = False
         self.bot_name = "Env"
         self.stdio = stdio
+        self.halite_binary_path = halite_binary_path
+        self.enemy_launch_cmd = enemy_launch_cmd
+        self.enemy_bot_path = enemy_bot_path
+        self.halite_opts = halite_opts
 
     def step(self, actions):
         self.game.send_command_queue(actions)
@@ -32,18 +36,18 @@ class Env():
 
         if self.stdio:
             self.game = hlt.GameStdIO(self.bot_name)
-        else :
-            # run exe
+        else:
             if self.replay:
                 self.process = sub.Popen(
-                    ["./halite", "-t", "-i", "replays", f'python3 envs/FakeBot.py {self.socket_path}', "/home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/venv/bin/python /home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/MyBotShortTraining.py"])
+                    [self.halite_binary_path, *self.halite_opts, f'python3 envs/FakeBot.py {self.socket_path}',
+                     f"{self.enemy_launch_cmd} {self.enemy_bot_path}"])
             else:
                 self.process = sub.Popen(
-                    ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 envs/FakeBot.py {self.socket_path}',
-                    "/home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/venv/bin/python /home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/MyBotShortTraining.py"],
+                    [self.halite_binary_path, *self.halite_opts, "replays",
+                     f'python3 envs/FakeBot.py {self.socket_path}',
+                     f'{self.enemy_launch_cmd} {self.enemy_bot_path}'],
                     stdout=sub.PIPE)
             self.game = hlt.GameUnix(self.bot_name, self.socket_path)
-
 
         return self.game.update_map()
 
@@ -60,6 +64,7 @@ class Env():
         self.socket_path = socket_path
         self.replay = replay
         self.bot_name = bot_name
+
 
 def navigate(game_map, start_of_round, ship, destination, speed=int(hlt.constants.MAX_SPEED)):
     """
