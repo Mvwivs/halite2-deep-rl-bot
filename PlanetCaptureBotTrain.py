@@ -13,12 +13,14 @@ from rl.callbacks import TestLogger, ModelIntervalCheckpoint, TrainEpisodeLogger
 
 from models import LordTateKanti
 
-import halite_env
+from envs import halite_env
 from envs.command_env import CommandEnv
-from tensorboard_callback import TensorBoard
+from envs.tensorboard_callback import TensorBoard
+
+bot_name = 'PlanetCaptureBot'
 
 env = halite_env.Env()
-env.configure(socket_path=f"/dev/shm/{time.time_ns()}", replay=False)
+env.configure(socket_path=f"/dev/shm/{time.time_ns()}", replay=False, bot_name=bot_name)
 env = CommandEnv(env)
 nb_actions = env.action_space.n
 

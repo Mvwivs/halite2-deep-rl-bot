@@ -14,7 +14,7 @@ from tensorflow.keras.layers import Dense, Activation, Flatten
 from tensorflow.keras.optimizers import Adam
 
 import hlt
-import halite_env
+from envs import halite_env
 from envs.ml_rl import MlrlEnv
 from models import Illogical
 

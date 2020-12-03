@@ -36,11 +36,11 @@ class Env():
             # run exe
             if self.replay:
                 self.process = sub.Popen(
-                    ["./halite", "-t", "-i", "replays", f'python3 FakeBot.py {self.socket_path}', "python3 Covid.py"])
+                    ["./halite", "-t", "-i", "replays", f'python3 envs/FakeBot.py {self.socket_path}', "/home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/venv/bin/python /home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/MyBotShortTraining.py"])
             else:
                 self.process = sub.Popen(
-                    ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 FakeBot.py {self.socket_path}',
-                    "python3 Covid.py"],
+                    ["./halite", "-t", "-q", "-r", "-i", "replays", f'python3 envs/FakeBot.py {self.socket_path}',
+                    "/home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/venv/bin/python /home/vova/Downloads/Halite2_ML-StarterBot-Python_Linux-x64/MyBotShortTraining.py"],
                     stdout=sub.PIPE)
             self.game = hlt.GameUnix(self.bot_name, self.socket_path)
 

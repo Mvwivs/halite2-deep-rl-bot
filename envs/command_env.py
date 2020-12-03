@@ -4,8 +4,8 @@ import time
 
 import hlt
 
-from halite_env import navigate
-from halite_env import max_planets, max_radius, max_health, max_distance
+from envs.halite_env import navigate
+from envs.halite_env import max_planets, max_radius, max_health, max_distance
 from envs.gym_discrete import gym_discrete
 
 feature_len = 7

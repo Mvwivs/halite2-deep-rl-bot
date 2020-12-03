@@ -13,3 +13,4 @@ runs/
 *.csv
 dist/
 build/
+bots/

@@ -11,10 +11,9 @@ from rl.memory import SequentialMemory
 from rl.callbacks import ModelIntervalCheckpoint, TrainEpisodeLogger
 from rl.random import OrnsteinUhlenbeckProcess
 
-
-import halite_env
+from envs import halite_env
 from envs.ml_rl import MlrlEnv
-from tensorboard_callback import TensorBoard
+from envs.tensorboard_callback import TensorBoard
 
 from models import Illogical
 
