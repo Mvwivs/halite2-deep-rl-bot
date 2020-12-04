@@ -43,8 +43,9 @@ total_reward = 0
 reward = 0
 observations = env.reset()
 while True:
-    # print(f'{observations=}')
-    actions = actor.predict(observations.reshape((1, -1)))[0]
+    # ifprint(f'{observations=}')
+    ifprint(f'{observations.shape=}')
+    actions = actor.predict(observations.reshape(1, 1, 28, 14)).flatten()
 
     ifprint(f'{actions=}')
 

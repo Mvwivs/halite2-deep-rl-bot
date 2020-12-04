@@ -9,7 +9,7 @@ from envs.halite_env import navigate
 from envs.halite_env import max_planets, max_radius, max_health, max_distance
 from envs.gym_discrete import gym_discrete
 
-feature_len = 8
+feature_len = 14
 
 class MlrlEnv():
     def __init__(self, env):
@@ -20,18 +20,19 @@ class MlrlEnv():
         self.start_round = 0
 
         self.last_planets = 0
+        self.last_ships = 0
 
 
     def step(self, action):
         
         commands = self._get_commands(action, self.map)
-        self.map, _, done, _ = self.env.step(commands)
+        self.map, _, done, info = self.env.step(commands)
         self.start_round = time.time()
 
         reward = self._calc_reward(self.map)
         observation = self._get_observations(self.map)
 
-        return observation, reward, done, {}
+        return observation, reward, done, info
     
     def reset(self):
         self.map = self.env.reset()
@@ -49,7 +50,11 @@ class MlrlEnv():
         # print(f'{action=}')
         commands = []
         player_id = map.get_me().id
-        predictions = action
+
+        total = np.sum(np.exp(action), -1)
+        # print(f'{total=}')
+        predictions = np.exp(action) / total
+        # print(f'{predictions=}')
 
         ships_to_planets_assignment = self.produce_ships_to_planets_assignment(map, predictions)
         commands = self.produce_instructions(map, ships_to_planets_assignment)
@@ -71,13 +76,23 @@ class MlrlEnv():
                 is_docking = True
                 break
 
+        my_ships = len(map.get_me().all_ships())
+
         if is_docking:
             reward += 10
 
         if my_planets > self.last_planets:
-            reward += 100
-
+            reward += 100 * (my_planets - self.last_planets)
+        if my_planets < self.last_planets:
+            reward -= 100 * (self.last_planets - my_planets)
         self.last_planets = my_planets
+
+        # if my_ships > self.last_ships:
+        #     reward += 5 * (my_ships - self.last_ships)
+        # if my_ships < self.last_ships:
+        #     reward -= 5 * (self.last_ships - my_ships)
+        # self.last_ships = my_ships
+
         return reward
 
     def _get_observations(self, map):
@@ -88,34 +103,58 @@ class MlrlEnv():
         for i, planet in enumerate(map.all_planets()):
             if planet is None: # destroyed?
                 continue
-            
-            radius = planet.radius / max_radius
-            health = planet.health / max_health
-            docked_ships = len(planet.all_docked_ships()) / planet.num_docking_spots
-            
-            closest_friendly_ship_distance = np.min([ 
-                np.linalg.norm((planet.x - ship.x, planet.y - ship.y))
-                for ship in map.get_me().all_ships()
-            ]) / max_distance
-            closest_enemy_ship_distance = np.min([ 
-                np.linalg.norm((planet.x - ship.x, planet.y - ship.y))
-                for ship in map._all_ships()
-                if ship.owner != player_id
-            ]) / max_distance
 
             exists = True
-            owned = planet.is_owned()
-            owned_by_me = planet.is_owned() and (planet.owner.id == player_id)
+            owned = -1 # by enemy
+            if planet.owner == map.get_me():
+                owned = 1
+            elif planet.owner is None:
+                owned = 0
+            
+            radius = planet.radius
+            health = planet.health
+            docked_ships = len(planet.all_docked_ships()) - planet.num_docking_spots
+            production = planet.current_production * owned
+            remaining_resources = planet.remaining_resources
+            
+            friendly_ship_distance = max_distance
+            enemy_ship_distance = max_distance
+            health_weighted_ship_distance = 0
+            sum_of_health = 0
+            enemy_gravity = 0
+            friendly_gravity = 0
+            for player in map.all_players():
+                for ship in player.all_ships():
+                    d = ship.calculate_distance_between(planet)
+                    if player == map.get_me():
+                        friendly_ship_distance = min(friendly_ship_distance, d)
+                        sum_of_health += ship.health
+                        health_weighted_ship_distance += d * ship.health
+                        friendly_gravity += ship.health / (d * d)
+                    else:
+                        enemy_ship_distance = min(enemy_ship_distance, d)
+                        enemy_gravity -= ship.health / (d * d)
+
+            health_weighted_ship_distance = health_weighted_ship_distance / sum_of_health
+            distance_from_center = np.linalg.norm((planet.x - map.width / 2, planet.y - map.height / 2))
+            
+            is_active = docked_ships > 0 or owned != 1
 
             features = [
                 exists,
+                owned,
                 radius,
                 health,
+                production,
                 docked_ships,
-                closest_friendly_ship_distance,
-                closest_enemy_ship_distance,
-                owned,
-                owned_by_me
+                friendly_ship_distance,
+                enemy_ship_distance,
+                is_active,
+                friendly_gravity,
+                enemy_gravity,
+                remaining_resources,
+                health_weighted_ship_distance,
+                distance_from_center
             ]
             observation[i] = np.array(features)
 

@@ -26,13 +26,13 @@ class CommandEnv():
     def step(self, action):
         
         commands = self._get_commands(action, self.map)
-        self.map, _, done, _ = self.env.step(commands)
+        self.map, _, done, info = self.env.step(commands)
         self.start_round = time.time()
 
         reward = self._calc_reward(self.map)
         observation = self._get_observations(self.map)
 
-        return observation, reward, done, {}
+        return observation, reward, done, info
     
     def reset(self):
         self.map = self.env.reset()
@@ -46,7 +46,7 @@ class CommandEnv():
         self.env.close()
     
     def _get_commands(self, action, map: hlt.game_map.Map):
-        # print(f'{action=}')
+        # print(f'{action=}', flush=True)
         commands = []
         planet_id_sorted = action
         planet_id = self.planet_index[planet_id_sorted]

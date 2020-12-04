@@ -15,17 +15,19 @@ from models import LordTateKanti
 
 from envs import halite_env
 from envs.command_env import CommandEnv
+from envs.metrics_env import MetricsEnv
 from envs.tensorboard_callback import TensorBoard
 
-bot_name = 'PlanetCaptureBot'
+bot_name = 'PlanetCaptureSmartBot'
 
 env = halite_env.Env()
 env.configure(socket_path=f"/dev/shm/{time.time_ns()}", replay=False, bot_name=bot_name)
+env = MetricsEnv(env)
 env = CommandEnv(env)
 nb_actions = env.action_space.n
 
 model = LordTateKanti.make_model(env)
-print(model.summary())
+model.summary()
 
 # parameters
 
