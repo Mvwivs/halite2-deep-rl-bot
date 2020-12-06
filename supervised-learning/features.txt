@@ -1,52 +1,48 @@
 
 cooldown
 health
-x, y
-vel_x, vel_y
-
+x,
+y
+vel_x,
+vel_y
 closest_empty_planet_distance
 closest_empty_planet_angle
-
 closest_my_planets_distance
 closest_my_planets_angle
-
 closest_enemy_planets_distance
 closest_enemy_planets_angle
-
 largest_our_planet_distance
 largest_our_planet_angle
-
 largest_enemy_planet_distance
 largest_enemy_planet_angle
-
-closest_team_ships_distance
-closest_team_ships_angle
-
-closest_enemy_ships_distance
-closest_enemy_ships_angle
-
 largest_empty_planet_distance
 largest_empty_planet_angle
 
+closest_team_ships_distance
+closest_team_ships_angle
+closest_enemy_ships_distance
+closest_enemy_ships_angle
+
 
 28 planets [
-    exists,
-    owned,
-    radius,
-    health,
-    production,
-    docked_ships,
-    friendly_ship_distance,
-    enemy_ship_distance,
-    is_active,
-    friendly_gravity,
-    enemy_gravity,
-    remaining_resources,
-    health_weighted_ship_distance,
-    distance_from_center
+    exists, # ind
+    radius, # ind
+    health, # ind
+    production, # ind
+    docked_ships, # ind
+    remaining_resources, #ind
+    distance_from_center # ind
 
-    distance
-    angle
+    owner, # polictic
+    friendly_ship_distance, # polictic
+    enemy_ship_distance, #politic
+    is_active, # politic
+    friendly_gravity, # politic
+    enemy_gravity, # politic
+    health_weighted_ship_distance, #politic
+
+    distance # ship
+    angle # ship
 ]
 
 
