@@ -236,6 +236,9 @@ class Ship(Entity):
         self._docking_progress = progress
         self._weapon_cooldown = cooldown
 
+        self.vel_x = vel_x
+        self.vel_y = vel_y
+
     def thrust(self, magnitude, angle):
         """
         Generate a command to accelerate this ship.
