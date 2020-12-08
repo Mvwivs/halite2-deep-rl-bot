@@ -25,8 +25,8 @@ class Feature:
     health = 1
     x = 2
     y = 3
-    vel_x = 4
-    vel_y = 5
+    vel_x = 4 # !!!
+    vel_y = 5 # !!!
     closest_empty_planet_distance = 6
     closest_empty_planet_angle = 7
     distance_to_closest_friendly_planet = 8
@@ -37,8 +37,8 @@ class Feature:
     angle_to_largest_friendly_planet = 13
     distance_to_largest_enemy_planet = 14
     angle_to_largest_enemy_planet = 15
-    distance_to_closest_friendly_ship = 16
-    angle_to_closest_friendly_ship = 17
+    distance_to_closest_friendly_ship = 16 # !!!
+    angle_to_closest_friendly_ship = 17 # !!!
     distance_to_closest_enemy_ship = 18
     angle_to_closest_enemy_ship = 19
     distance_to_largest_empty_planet = 20
@@ -56,10 +56,10 @@ class FeaturePlanets:
 
     exists = 7
     radius = 8
-    health = 9
+    health = 9 # !!!
     production = 10
     docked_ships = 11
-    remaining_production = 12
+    remaining_production = 12 # !!!
     distance_from_center = 13
 
     distance = 14
@@ -277,6 +277,9 @@ def get_ship_feature(ship, planets_empty, enemy_planets, your_planets, largest_e
     feature[Feature.angle_to_closest_friendly_ship] = angle_between(ship, closest_team_ship)
     feature[Feature.angle_to_closest_enemy_ship] = angle_between(ship, closest_enemy_ship)
 
+    # common = np.copy(common_planet_features)
+    # common[0:28,0:7] = your_planet_features
+    # feature[22:] = common.flatten()
     for planet in chain(your_planets, enemy_planets, planets_empty):
         offset = 22 + planet.id * 16
         feature[offset:offset + 16] = common_planet_features[planet.id]
@@ -288,7 +291,7 @@ def get_ship_feature(ship, planets_empty, enemy_planets, your_planets, largest_e
 
 def parse_replay(path):
     with open(path, "r") as f:
-        replay = json.load(f)
+        replay = json.loads(f.readline()[2:-1])
         planets_info = replay['planets']
         frames = replay['frames']
         width, height = replay['width'], replay['height']
@@ -322,7 +325,6 @@ def parse_replay(path):
                                        left_feature=planet_features_left[planet.id],
                                        right_feature=planet_features_right[planet.id])
 
-            print(f'{ships_left=}, {ships_right=}')
             left_moves = move_frame['0'][0]
             right_moves = move_frame['1'][0]
             for ship in (ship for ship in ships_left if not ship.is_docked):
@@ -371,16 +373,17 @@ def write_features(feature_file, output_file, features, outputs):
 
 def extract_features_to_dir(root_dir, features_dir_path):
     for replay in Path(root_dir).iterdir():
+        print(replay.absolute())
         target_basename = replay.stem
         features_filename = Path(features_dir_path).joinpath(target_basename + "_features").with_suffix(".npy")
         output_filename = Path(features_dir_path).joinpath(target_basename + "_outputs").with_suffix(".npy")
         f, o = parse_replay(replay.absolute())
         write_features(features_filename, output_filename, f, o)
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--replays")
+    parser.add_argument("--features")
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--replays")
-parser.add_argument("--features")
-args = parser.parse_args()
-
-extract_features_to_dir(args.replays, args.features)
+    extract_features_to_dir(args.replays, args.features)
