@@ -9,12 +9,14 @@ def make_model_actor(env):
 
     actor = Sequential()
     actor.add(Flatten(input_shape=(1,) + env.observation_space.shape))
+    actor.add(Dense(500))
+    actor.add(Activation('sigmoid'))
     actor.add(Dense(300))
-    actor.add(Activation('relu'))
-    actor.add(Dense(300))
-    actor.add(Activation('relu'))
+    actor.add(Activation('sigmoid'))
+    actor.add(Dense(100))
+    actor.add(Activation('sigmoid'))
     actor.add(Dense(nb_actions))
-    actor.add(Activation('softmax'))
+    actor.add(Activation('sigmoid'))
 
     return actor
 
@@ -25,13 +27,15 @@ def make_model_critic(env):
     observation_input = Input(shape=(1,) + env.observation_space.shape, name='observation_input')
     flattened_observation = Flatten()(observation_input)
 
-    x = Dense(300)(flattened_observation)
-    x = Activation('relu')(x)
+    x = Dense(500)(flattened_observation)
+    x = Activation('sigmoid')(x)
     x = Concatenate()([x, action_input])
     x = Dense(300)(x)
-    x = Activation('relu')(x)
+    x = Activation('sigmoid')(x)
+    x = Dense(100)(x)
+    x = Activation('sigmoid')(x)
     x = Dense(1)(x)
-    x = Activation('linear')(x)
+    x = Activation('sigmoid')(x)
 
     critic = Model(inputs=[action_input, observation_input], outputs=x)
 

@@ -5,18 +5,16 @@ import hlt
 
 
 class Env():
-    def __init__(self, stdio=False, halite_binary_path="./halite", enemy_launch_cmd="python",
+    def __init__(self, stdio=False, halite_binary_path="./halite",
                  halite_opts=("-t", "-i", "replays"),
-                 enemy_bot_path="Enemy.py"):
+                 enemy_bot="python Enemy.py"):
         self.game = None
         self.process = None
         self.socket_path = ""
-        self.replay = False
         self.bot_name = "Env"
         self.stdio = stdio
         self.halite_binary_path = halite_binary_path
-        self.enemy_launch_cmd = enemy_launch_cmd
-        self.enemy_bot_path = enemy_bot_path
+        self.enemy_bot = enemy_bot
         self.halite_opts = halite_opts
 
     def step(self, actions):
@@ -37,16 +35,10 @@ class Env():
         if self.stdio:
             self.game = hlt.GameStdIO(self.bot_name)
         else:
-            if self.replay:
-                self.process = sub.Popen(
-                    [self.halite_binary_path, *self.halite_opts, f'python3 envs/FakeBot.py {self.socket_path}',
-                     f"{self.enemy_launch_cmd} {self.enemy_bot_path}"])
-            else:
-                self.process = sub.Popen(
-                    [self.halite_binary_path, *self.halite_opts, "replays",
-                     f'python3 envs/FakeBot.py {self.socket_path}',
-                     f'{self.enemy_launch_cmd} {self.enemy_bot_path}'],
-                    stdout=sub.PIPE)
+            self.process = sub.Popen(
+                [self.halite_binary_path, *self.halite_opts,
+                    f'python3 envs/FakeBot.py {self.socket_path}', f'{self.enemy_bot}'],
+                stdout=sub.PIPE)
             self.game = hlt.GameUnix(self.bot_name, self.socket_path)
 
         return self.game.update_map()
@@ -60,9 +52,8 @@ class Env():
             self.process.wait()
             self.process = None
 
-    def configure(self, socket_path="/dev/shm/bot.sock", replay=False, bot_name="Env"):
+    def configure(self, socket_path="/dev/shm/bot.sock", bot_name="Env"):
         self.socket_path = socket_path
-        self.replay = replay
         self.bot_name = bot_name
 
 
