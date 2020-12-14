@@ -10,3 +10,4 @@
 /home/vova/Documents/multiagent_systems/L3/bots/venv3.8/bin/python /home/vova/Documents/multiagent_systems/L3/bots/Settler/Enemy.py
 /home/vova/Documents/multiagent_systems/L3/bots/venv3.8/bin/python /home/vova/Documents/multiagent_systems/L3/bots/Covid-open-ai/MyBot-ai.py
 /home/vova/Documents/multiagent_systems/L3/bots/venv3.8/bin/python /home/vova/Documents/multiagent_systems/L3/bots/Anaconda/MyBot.py
+/home/vova/Documents/multiagent_systems/L3/bots/venv3.8/bin/python /home/vova/Documents/multiagent_systems/L3/bots/Rush/RushBot.py
