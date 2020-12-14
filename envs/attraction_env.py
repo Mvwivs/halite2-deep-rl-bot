@@ -3,6 +3,8 @@ import numpy as np
 import time
 import heapq
 
+import gym
+
 import hlt
 
 from envs.halite_env import navigate
@@ -17,8 +19,10 @@ class AttractionEnv():
     def __init__(self, env):
         self.env = env
         self.feature_len = 15
-        self.action_space = gym_discrete(max_planets)
-        self.observation_space = np.zeros((max_planets, self.feature_len))
+        self.action_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(max_planets,), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=-1.0, high=1.0, shape=(max_planets, self.feature_len), dtype=np.float32)
+        self.metadata = None
+        self.reward_range = (-float('inf'), float('inf'))
         self.map = None
         self.start_round = 0
 
@@ -51,6 +55,7 @@ class AttractionEnv():
         self.env.close()
     
     def _get_commands(self, actions, map: hlt.game_map.Map):
+        action_ = actions.reshape((1, max_planets))[0]
         # print(f'{actions=}')
         commands = []
         player_id = map.get_me().id
@@ -58,7 +63,7 @@ class AttractionEnv():
         unshuffled = {}
         for id, pos in self.shuffle_index.items():
             if id != -1:
-                unshuffled[id] = actions[pos]
+                unshuffled[id] = action_[pos]
 
         undocked_ships = [ship for ship in map.get_me().all_ships()
                     if ship.docking_status == ship.DockingStatus.UNDOCKED]
@@ -69,7 +74,7 @@ class AttractionEnv():
             for planet_id, attraction in unshuffled.items():
                 planet = map.get_planet(planet_id)
                 dist = ship.calculate_distance_between(planet)
-                gravity = (max_distance ** 2) * attraction / (dist ** 2)
+                gravity = 1.1 * (attraction ** 3) - dist / max_distance
                 if gravity > max_gravity:
                     max_gravity = gravity
                     max_planet = planet
@@ -106,16 +111,15 @@ class AttractionEnv():
             if planet.is_owned() and planet.owner.id == player_id:
                 my_planets += 1
         
-        is_docking = False
+        docking_now = 0
         for ship in map.get_me().all_ships():
             if ship.docking_status == hlt.entity.Ship.DockingStatus.DOCKING:
-                is_docking = True
+                docking_now += 1
                 break
 
         my_ships = len(map.get_me().all_ships())
 
-        if is_docking:
-            reward += 10
+        reward += docking_now * 10
 
         if my_planets > self.last_planets:
             reward += 100 * (my_planets - self.last_planets)
@@ -125,9 +129,9 @@ class AttractionEnv():
 
         # if my_ships > self.last_ships:
         #     reward += 5 * (my_ships - self.last_ships)
-        # if my_ships < self.last_ships:
-        #     reward -= 5 * (self.last_ships - my_ships)
-        # self.last_ships = my_ships
+        if my_ships < self.last_ships:
+            reward -= 20 * (self.last_ships - my_ships)
+        self.last_ships = my_ships
 
         return reward
 
@@ -146,7 +150,7 @@ class AttractionEnv():
             owner_enemy = 0
             if not planet.is_owned():
                 owner_none = 1
-            elif planet.owner.id == map.get_me().id:
+            elif planet.owner.id == player_id:
                 owner_me = 1
             else:
                 owner_enemy = 1
@@ -206,15 +210,17 @@ class AttractionEnv():
             ]
             unshuffled.append((planet.id, np.array(features)))
 
+        # print(f'{unshuffled=}')
         left = max_planets - len(unshuffled)
         for i in range(left, max_planets):
             unshuffled.append((-1, list(np.zeros(self.feature_len))))
 
-        np.random.shuffle(unshuffled)
+        # np.random.shuffle(unshuffled)
         self.shuffle_index = { u[0]:pos for pos, u in enumerate(unshuffled) if u[0] != -1 }
 
         observation = np.zeros(self.observation_space.shape)
         for i in range(0, len(unshuffled)):
             observation[i] = unshuffled[i][1]
 
+        # print(f'{observation=}')
         return observation

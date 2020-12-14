@@ -46,7 +46,7 @@ if args.load:
 nb_steps = 20_000
 nb_steps_warmup = int(nb_steps * 0.05)
 memory = SequentialMemory(limit=10_000, window_length=1)
-random_process = GaussianWhiteNoiseProcess(mu=0, sigma=0.05, size=nb_actions)
+random_process = GaussianWhiteNoiseProcess(mu=0, sigma=0.01, size=nb_actions)
 agent = DDPGAgent(nb_actions=nb_actions, actor=actor, critic=critic, critic_action_input=action_input,
                   memory=memory, nb_steps_warmup_critic=nb_steps_warmup, nb_steps_warmup_actor=nb_steps_warmup,
                   random_process=random_process, gamma=0.9, target_model_update=150)
