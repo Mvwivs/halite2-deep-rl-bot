@@ -2,10 +2,10 @@
 import hlt
 import logging
 
-from _hlt import helper
+from utils import helper
 
-game = hlt.Game("Rush")
-logging.info("Starting my Rush bot!")
+game = hlt.Game("Bee")
+logging.info("Starting my Bee Bot!")
 
 def nearest(ship, enemies, filter):
     min_dist = 1000
